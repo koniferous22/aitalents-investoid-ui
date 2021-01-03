@@ -33,6 +33,7 @@ const SearchInput = styled.input<{ fontSize: Size }>`
 
 const SuggestionsWrapper = styled.div`
   position: absolute;
+  background-color: #FFFFFF;
   text-align: left;
   left: 0px;
   margin-left: 33vw;

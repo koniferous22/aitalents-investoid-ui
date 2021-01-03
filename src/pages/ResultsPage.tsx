@@ -10,6 +10,7 @@ import { Prediction } from '../components/Prediction';
 import { faArrowUp, faArrowDown } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useInView } from 'react-intersection-observer';
+import { CompanySearch } from '../components/CompanySearch';
 
 type Mode = 'DAY' | 'WEEK'
 
@@ -141,11 +142,11 @@ export const ResultsPage = () => {
   ] = useState<ResponsePool>({
         'DAY': {
           data: [],
-          pageCount: 0
+          pageCount: 1
         },
         'WEEK': {
           data: [],
-          pageCount: 0
+          pageCount: 1
         },
       })
   // TODO type inference with query-string doesn't work, issues with installing @types/query-string
@@ -162,25 +163,29 @@ export const ResultsPage = () => {
     .finally(() => setLoading(false)),
     []
   )
-  const callArticles = useCallback((ids: string[], mode: Mode, page: number) =>
-    fetch(
-      `${appConfig.apiUrl}/${getEndpointByMode(mode)}?${stringify({ id: ids, page })}`, 
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        }
+    const callArticles = useCallback((ids: string[], mode: Mode, page: number, pageLimit: number) => {
+      if (page > pageLimit) {
+        return
       }
-    ).then((res) => res.json())
-    .then(({ pageCount, data }: { pageCount: number, data: Array<SearchResultResponse>}) => setEntries((prevEntries) => ({
-      ...prevEntries,
-      [mode]: {
-        pageCount,
-        data: [...prevEntries[mode].data, data ]
-      }
-    })))
-    .finally(() => setLoading(false)),
-    []
-  )
+      return fetch(
+          `${appConfig.apiUrl}/${getEndpointByMode(mode)}?${stringify({ id: ids, page })}`, 
+          {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
+        ).then((res) => res.json())
+        .then(({ pageCount, data }: { pageCount: number, data: Array<SearchResultResponse>}) => setEntries((prevEntries) => ({
+          ...prevEntries,
+          [mode]: {
+            pageCount,
+            data: [...prevEntries[mode].data, data ]
+          }
+        })))
+        .finally(() => setLoading(false))
+      },
+      []
+    )
   const { id, search }: { id: string; search: string} = parse(location.search);
   const [
     isLoading,
@@ -207,7 +212,7 @@ export const ResultsPage = () => {
   }, [id, search])
   useEffect(() => {
     if (ids) {
-      callArticles(ids, mode, 1)
+      callArticles(ids, mode, 1, 1)
     }
   }, [ids, mode])
   if (error) {
@@ -218,6 +223,7 @@ export const ResultsPage = () => {
   }
   return (
     <PageWrapper>
+      <CompanySearch size={'SMALL'}/>
       <RadioForm>
         <Title>
           Predicting stock change after
@@ -250,7 +256,7 @@ export const ResultsPage = () => {
                   <Entry
                     {...entry}
                     isLast={pageIndex === entries[mode].data.length - 1 && index === entryPage.length - 1}
-                    onLoad={() => callArticles(ids, mode, entries[mode].data.length)}
+                    onLoad={() => callArticles(ids, mode, entries[mode].data.length, entries[mode].pageCount)}
                   />
                 ))
               }
