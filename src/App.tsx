@@ -45,7 +45,7 @@ const FooterWrapper = styled.div`
   position: fixed;
 `;
 
-const Footer = () => <FooterWrapper>Made by team Khaos, as part of AITalents bootcamp 2019-2020</FooterWrapper>
+const Footer = () => <FooterWrapper>Made by team Khaos, as part of AITalents bootcamp 2020-2021</FooterWrapper>
 
 const AppWrapper = styled.div`
   height: 100vh;
